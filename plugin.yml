@@ -1,0 +1,13 @@
+name: MCStargates
+version: 1.0
+description: A Stargate portal plugin for Spigot
+authors: [Crashdoom, Open Source Contributors on GitHub]
+website: https://github.com/crashdoom/mcstargates
+main: me.crashdoom.stargates.Stargates
+commands:
+   stargate:
+      description: Use the Stargates menu
+      usage: /stargate
+      aliases: [sg]
+      permission: stargates.use
+      permission-message: You are not authorised to use the Stargate Network.

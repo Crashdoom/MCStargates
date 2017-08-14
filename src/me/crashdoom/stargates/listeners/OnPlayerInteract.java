@@ -87,7 +87,7 @@ public class OnPlayerInteract implements Listener {
 
             sgCode.open(player);
 
-            Stargate stargate = new Stargate(address, centre_block.getLocation(), StargateUtils.getStargateAxis(centre_block.getLocation()));
+            Stargate stargate = new Stargate(parent, address, centre_block.getLocation(), StargateUtils.getStargateAxis(centre_block.getLocation()));
             parent.stargates.put(address, stargate);
         }
 

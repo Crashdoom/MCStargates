@@ -19,6 +19,7 @@ package me.crashdoom.stargates.listeners;
 import me.crashdoom.stargates.StargateUtils;
 import me.crashdoom.stargates.Stargates;
 import me.crashdoom.stargates.entity.Stargate;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -26,9 +27,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import java.util.LinkedList;
+import java.util.List;
+
 
 public class OnPlayerMove implements Listener {
     Stargates parent;
+    List<String> ignore = new LinkedList<String>();
 
     public OnPlayerMove(Stargates stargates) {
         this.parent = stargates;
@@ -36,6 +41,9 @@ public class OnPlayerMove implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent e){
+        final String playerName = e.getPlayer().getName();
+        if (ignore.indexOf(playerName) != -1) return;
+
         Location loc = e.getPlayer().getLocation();
         Block block = loc.getBlock();
 
@@ -43,11 +51,21 @@ public class OnPlayerMove implements Listener {
             Stargate nearbyGate = StargateUtils.getNearbyStargate(loc);
 
             if (nearbyGate.isOriginStargate()) {
-                e.getPlayer().teleport(nearbyGate.getWormhole().getPosition().clone().add(0, 1, 0));
-                nearbyGate.closeConnection();
+                e.getPlayer().teleport(nearbyGate.getWormhole().getPosition().clone().add(nearbyGate.getAxis().equals("x") ? 0 : 2, 1, nearbyGate.getAxis().equals("z") ? 0 : 2));
             } else {
-                parent.sendChatMessage(e.getPlayer(), "This is not the origin gate.");
+                parent.sendChatMessage(e.getPlayer(), "A burst of energy forces you away from the wormhole exit.");
+                e.getPlayer().setVelocity(e.getPlayer().getLocation().getDirection().multiply(-1));
+                e.getPlayer().damage(1.0);
             }
+
+            ignore.add(playerName);
+
+            Bukkit.getScheduler().scheduleSyncDelayedTask(parent, new Runnable() {
+                @Override
+                public void run() {
+                    ignore.remove(playerName);
+                }
+            }, 40L);
         }
     }
 }

@@ -16,11 +16,15 @@
  */
 package me.crashdoom.stargates.entity;
 
+import me.crashdoom.stargates.Stargates;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 public class Stargate {
+    private Stargates parent;
+
     private String address;
     private String alias;
 
@@ -30,11 +34,12 @@ public class Stargate {
     private Location position; // Central block
     private String axis;
 
-    public Stargate(String address, Location location, String axis) {
-        this(address, location, axis, "");
+    public Stargate(Stargates parent, String address, Location location, String axis) {
+        this(parent, address, location, axis, "");
     }
 
-    public Stargate(String address, Location location, String axis, String alias) {
+    public Stargate(Stargates parent, String address, Location location, String axis, String alias) {
+        this.parent = parent;
         this.address = address;
         this.position = location;
         this.axis = axis;
@@ -119,6 +124,13 @@ public class Stargate {
 
         this.wormhole.showPortal();
         this.showPortal();
+
+        Bukkit.getScheduler().scheduleSyncDelayedTask(parent, new Runnable() {
+            @Override
+            public void run() {
+                closeConnection();
+            }
+        }, (20L * 60));
 
         return true;
     }

@@ -62,8 +62,8 @@ public class StargateCommand implements CommandExecutor {
                     case "list":
                         parent.sendChatMessage(player, "Known Gate Addresses:");
 
-                        for (Map.Entry<String, Stargate> stargate : parent.stargates.entrySet()) {
-                            parent.sendChatMessage(player, "- " + ChatColor.GREEN + (stargate.getValue().getAlias() != null ? stargate.getValue().getAlias() : stargate.getKey()) + " " + ChatColor.GRAY + " [" + stargate.getValue().getPosition().getWorld().getName() + ": " + stargate.getValue().getPosition().getX() + ", " + stargate.getValue().getPosition().getY() + ", " + stargate.getValue().getPosition().getZ() + "]", true);
+                        for (Stargate stargate : StargateUtils.getStargatesByOwner(player.getUniqueId())) {
+                            parent.sendChatMessage(player, "- " + ChatColor.GREEN + (stargate.getAlias() != null ? stargate.getAlias() : stargate.getAddress()) + " " + ChatColor.GRAY + " [" + stargate.getPosition().getWorld().getName() + ": " + stargate.getPosition().getX() + ", " + stargate.getPosition().getY() + ", " + stargate.getPosition().getZ() + "]", true);
                         }
                         break;
 
@@ -78,7 +78,8 @@ public class StargateCommand implements CommandExecutor {
                 parent.sendChatMessage(player, "- " + ChatColor.GREEN + "/stargate help " + ChatColor.GRAY + " - Displays this.", true);
                 parent.sendChatMessage(player, "- " + ChatColor.GREEN + "/stargate dial " + ChatColor.GRAY + " - Opens the Dial Home Device.", true);
                 parent.sendChatMessage(player, "- " + ChatColor.GREEN + "/stargate list " + ChatColor.GRAY + " - Lists known Stargate addresses.", true);
-                parent.sendChatMessage(player, "- " + ChatColor.GREEN + "/stargate create " + ChatColor.GRAY + " - Create a new Stargate.", true);
+                parent.sendChatMessage(player, "- " + ChatColor.GREEN + "/stargate create" + ChatColor.GRAY + " - Create a new Stargate or GDC.", true);
+                parent.sendChatMessage(player, "- " + ChatColor.GREEN + "/stargate modify" + ChatColor.GRAY + " - Modify the properties of an existing Stargate or GDC.", true);
             }
         } else {
             sender.sendMessage("ERROR: This command may only be executed by a player.");
@@ -154,8 +155,33 @@ public class StargateCommand implements CommandExecutor {
     }
 
     private void createCommand(Player player, Command cmd, String label, String[] args) {
-        OnPlayerInteract.addPlayer(player);
+        boolean showHelp = false;
+        if (args.length < 2)
+            showHelp = true;
+        else {
+            switch (args[1]) {
+                case "stargate":
+                    OnPlayerInteract.addPlayer(player, "stargate");
 
-        parent.sendChatMessage(player, ChatColor.GREEN + "Please left click the centre Obsidian block of your new Stargate.");
+                    parent.sendChatMessage(player, ChatColor.GREEN + "Please left click the centre Obsidian block of your new Stargate.");
+                    break;
+
+                case "gdc":
+                    OnPlayerInteract.addPlayer(player, "gdc");
+
+                    parent.sendChatMessage(player, ChatColor.GREEN + "Please left click the Redstone block that will serve as your Gate Dialing Computer.");
+                    break;
+
+                default:
+                    showHelp = true;
+                    break;
+            }
+        }
+
+        if (showHelp) {
+            parent.sendChatMessage(player, "Create Help:");
+            parent.sendChatMessage(player, "- " + ChatColor.GREEN + "/stargate create stargate [alias/name]" + ChatColor.GRAY + " - Creates a new public Stargate.", true);
+            parent.sendChatMessage(player, "- " + ChatColor.GREEN + "/stargate create gdc " + ChatColor.GRAY + " - Creates a new Gate Dialing Computer.", true);
+        }
     }
 }

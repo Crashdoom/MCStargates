@@ -22,11 +22,17 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
+import java.util.List;
+import java.util.UUID;
+
 public class Stargate {
     private Stargates parent;
 
     private String address;
     private String alias;
+
+    private UUID ownerUUID;
+    private List<UUID> operatorUUIDs;
 
     private Stargate wormhole = null;
     private boolean isOrigin = false;
@@ -34,15 +40,16 @@ public class Stargate {
     private Location position; // Central block
     private String axis;
 
-    public Stargate(Stargates parent, String address, Location location, String axis) {
-        this(parent, address, location, axis, "");
+    public Stargate(Stargates parent, String address, Location location, String axis, UUID ownerUUID) {
+        this(parent, address, location, axis, ownerUUID, "");
     }
 
-    public Stargate(Stargates parent, String address, Location location, String axis, String alias) {
+    public Stargate(Stargates parent, String address, Location location, String axis, UUID ownerUUID, String alias) {
         this.parent = parent;
         this.address = address;
         this.position = location;
         this.axis = axis;
+        this.ownerUUID = ownerUUID;
         this.alias = alias;
     }
 
@@ -68,6 +75,14 @@ public class Stargate {
 
     public String getAxis() {
         return this.axis;
+    }
+
+    public UUID getOwnerUUID() {
+        return this.ownerUUID;
+    }
+
+    public boolean isOperatorUUID(String uuid) {
+        return this.ownerUUID.equals(uuid) || this.operatorUUIDs.contains(uuid);
     }
 
     public void showPortal() {

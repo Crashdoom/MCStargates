@@ -20,13 +20,28 @@ import me.crashdoom.stargates.entity.Stargate;
 import org.bukkit.Location;
 import org.bukkit.Material;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class StargateUtils {
     private static Stargates parent;
 
     public static void init(Stargates stargates) {
         parent = stargates;
+    }
+
+    public static List<Stargate> getStargatesByOwner(UUID owner) {
+        LinkedList<Stargate> stargates = new LinkedList<>();
+
+        for (Map.Entry<String, Stargate> stargate : parent.stargates.entrySet()) {
+            if (stargate.getValue().getOwnerUUID().equals(owner)) {
+                stargates.add(stargate.getValue());
+            }
+        }
+
+        return stargates;
     }
 
     public static Stargate getStargateByLocation(Location location) {

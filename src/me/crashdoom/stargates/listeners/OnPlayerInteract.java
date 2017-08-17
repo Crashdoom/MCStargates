@@ -33,7 +33,7 @@ import java.util.*;
 
 public class OnPlayerInteract implements Listener {
     Stargates parent;
-    static LinkedList<String> activeClients = new LinkedList<>();
+    static Map<String, String> activeClients = new LinkedHashMap<>();
     public Map<String, IconMenu> newCodeMenu = new HashMap<>();
 
     public OnPlayerInteract(Stargates stargates) {
@@ -44,68 +44,70 @@ public class OnPlayerInteract implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
-        if (activeClients.indexOf(player.getName()) == -1 || event.getAction() != Action.LEFT_CLICK_BLOCK)
+        if (!activeClients.containsKey(player.getName()) || event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
 
-        Block centre_block = event.getClickedBlock();
-        boolean isInvalid = event.getClickedBlock().getType() != Material.OBSIDIAN || !StargateUtils.isStargateBuildValid(centre_block.getLocation());
+        if (activeClients.get(player.getName()).equals("stargate")) {
+            Block centre_block = event.getClickedBlock();
+            boolean isInvalid = event.getClickedBlock().getType() != Material.OBSIDIAN || !StargateUtils.isStargateBuildValid(centre_block.getLocation());
 
-        if (isInvalid) {
-            if (StargateUtils.getStargateByLocation(centre_block.getLocation()) != null) {
-                parent.sendChatMessage(player, ChatColor.RED + "Stargate has been damaged. " + ChatColor.GRAY + "Removing Stargate from active network.");
+            if (isInvalid) {
+                if (StargateUtils.getStargateByLocation(centre_block.getLocation()) != null) {
+                    parent.sendChatMessage(player, ChatColor.RED + "Stargate has been damaged. " + ChatColor.GRAY + "Removing Stargate from active network.");
+                } else {
+                    parent.sendChatMessage(player, ChatColor.RED + "Unable to detect Stargate Portal build. " + ChatColor.GRAY + "You must select the bottom-middle block.");
+                    parent.sendChatMessage(player, "Stargate portals must be a 5x5 border of Obsidian with a redstone block in the centre-top position, and no obstructions.");
+                }
+            } else if (StargateUtils.getStargateByLocation(centre_block.getLocation()) != null) {
+                parent.sendChatMessage(player, ChatColor.RED + "This Stargate is already registered.");
             } else {
-                parent.sendChatMessage(player, ChatColor.RED + "Unable to detect Stargate Portal build. " + ChatColor.GRAY + "You must select the bottom-middle block.");
-                parent.sendChatMessage(player, "Stargate portals must be a 5x5 border of Obsidian with a redstone block in the centre-top position, and no obstructions.");
-            }
-        } else if (StargateUtils.getStargateByLocation(centre_block.getLocation()) != null) {
-            parent.sendChatMessage(player, ChatColor.RED + "This Stargate is already registered.");
-        } else {
-            parent.sendChatMessage(player, ChatColor.GREEN + "Detected valid Stargate build.");
-            parent.sendChatMessage(player, "Your new Stargate address has been shown on screen and registered in /sg list.");
+                parent.sendChatMessage(player, ChatColor.GREEN + "Detected valid Stargate build.");
+                parent.sendChatMessage(player, "Your new Stargate address has been shown on screen and registered in /sg list.");
 
-            IconMenu sgCode = null;
+                IconMenu sgCode = null;
 
-            String address = "";
+                String address = "";
 
-            while (sgCode == null || address.length() == 0) {
-                sgCode = new IconMenu("Your new Stargate Address is", 9, new IconMenu.OptionClickEventHandler() {
-                    @Override
-                    public void onOptionClick(IconMenu.OptionClickEvent event) {
-                        event.setWillClose(true);
-                        event.setWillDestroy(true);
+                while (sgCode == null || address.length() == 0) {
+                    sgCode = new IconMenu("Your new Stargate Address is", 9, new IconMenu.OptionClickEventHandler() {
+                        @Override
+                        public void onOptionClick(IconMenu.OptionClickEvent event) {
+                            event.setWillClose(true);
+                            event.setWillDestroy(true);
+                        }
+                    }, parent);
+
+                    for (int index = 1; index < 8; index++) {
+                        Random random = new Random();
+                        List<String> keySet = new ArrayList<String>(parent.stackMap.keySet());
+                        String key = keySet.get(random.nextInt(keySet.size()));
+
+                        sgCode.setOption(index, parent.stackMap.get(key), key);
+                        address = address + key;
                     }
-                }, parent);
 
-                for (int index = 1; index < 8; index++) {
-                    Random random = new Random();
-                    List<String> keySet = new ArrayList<String>(parent.stackMap.keySet());
-                    String key = keySet.get(random.nextInt(keySet.size()));
-
-                    sgCode.setOption(index, parent.stackMap.get(key), key);
-                    address = address + key;
+                    if (StargateUtils.getStargateByAddress(address) == null)
+                        break;
+                    else {
+                        address = "";
+                        sgCode.destroy();
+                    }
                 }
 
-                if (StargateUtils.getStargateByAddress(address) == null)
-                    break;
-                else {
-                    address = "";
-                    sgCode.destroy();
-                }
+                sgCode.open(player);
+
+                Stargate stargate = new Stargate(parent, address, centre_block.getLocation(), StargateUtils.getStargateAxis(centre_block.getLocation()), player.getUniqueId());
+                parent.stargates.put(address, stargate);
             }
-
-            sgCode.open(player);
-
-            Stargate stargate = new Stargate(parent, address, centre_block.getLocation(), StargateUtils.getStargateAxis(centre_block.getLocation()));
-            parent.stargates.put(address, stargate);
         }
 
         activeClients.remove(player.getName());
         event.setCancelled(true);
     }
 
-    public static void addPlayer(Player player) {
-        if (activeClients.indexOf(player.getName()) == -1) {
-            activeClients.add(player.getName());
+    public static void addPlayer(Player player, String type) {
+        if (!activeClients.containsKey(player.getName())) {
+            activeClients.put(player.getName(), type);
         }
     }
 }

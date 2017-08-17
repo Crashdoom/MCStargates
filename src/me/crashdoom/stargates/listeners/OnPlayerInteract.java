@@ -63,27 +63,35 @@ public class OnPlayerInteract implements Listener {
             parent.sendChatMessage(player, ChatColor.GREEN + "Detected valid Stargate build.");
             parent.sendChatMessage(player, "Your new Stargate address has been shown on screen and registered in /sg list.");
 
-            IconMenu sgCode = new IconMenu("Your new Stargate Address is", 9, new IconMenu.OptionClickEventHandler() {
-                @Override
-                public void onOptionClick(IconMenu.OptionClickEvent event) {
-                    event.setWillClose(true);
-                    event.setWillDestroy(true);
-                }
-            }, parent);
+            IconMenu sgCode = null;
 
             String address = "";
 
-            for (int index = 1; index < 8; index++) {
-                Random random = new Random();
-                List<String> keySet = new ArrayList<String>(parent.stackMap.keySet());
-                //String key = keySet.get(random.nextInt(keySet.size() - 2) + 1);
-                String key = keySet.get(random.nextInt(keySet.size()));
+            while (sgCode == null || address.length() == 0) {
+                sgCode = new IconMenu("Your new Stargate Address is", 9, new IconMenu.OptionClickEventHandler() {
+                    @Override
+                    public void onOptionClick(IconMenu.OptionClickEvent event) {
+                        event.setWillClose(true);
+                        event.setWillDestroy(true);
+                    }
+                }, parent);
 
-                sgCode.setOption(index, parent.stackMap.get(key), key);
-                address = address + key;
+                for (int index = 1; index < 8; index++) {
+                    Random random = new Random();
+                    List<String> keySet = new ArrayList<String>(parent.stackMap.keySet());
+                    String key = keySet.get(random.nextInt(keySet.size()));
+
+                    sgCode.setOption(index, parent.stackMap.get(key), key);
+                    address = address + key;
+                }
+
+                if (StargateUtils.getStargateByAddress(address) == null)
+                    break;
+                else {
+                    address = "";
+                    sgCode.destroy();
+                }
             }
-
-            //sgCode.setOption(7, parent.stackMap.get("[A]"), "[A]");
 
             sgCode.open(player);
 

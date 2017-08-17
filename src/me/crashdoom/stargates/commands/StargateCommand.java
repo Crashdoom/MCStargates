@@ -16,6 +16,7 @@
  */
 package me.crashdoom.stargates.commands;
 
+import com.sun.deploy.util.StringUtils;
 import me.crashdoom.stargates.IconMenu;
 import me.crashdoom.stargates.StargateUtils;
 import me.crashdoom.stargates.Stargates;
@@ -62,7 +63,7 @@ public class StargateCommand implements CommandExecutor {
                         parent.sendChatMessage(player, "Known Gate Addresses:");
 
                         for (Map.Entry<String, Stargate> stargate : parent.stargates.entrySet()) {
-                            parent.sendChatMessage(player, "- " + ChatColor.GREEN + stargate.getKey() + " " + ChatColor.GRAY + " Pos: " + stargate.getValue().getPosition().getX() + ", " + stargate.getValue().getPosition().getY() + ", " + stargate.getValue().getPosition().getZ(), true);
+                            parent.sendChatMessage(player, "- " + ChatColor.GREEN + (stargate.getValue().getAlias() != null ? stargate.getValue().getAlias() : stargate.getKey()) + " " + ChatColor.GRAY + " [" + stargate.getValue().getPosition().getWorld().getName() + ": " + stargate.getValue().getPosition().getX() + ", " + stargate.getValue().getPosition().getY() + ", " + stargate.getValue().getPosition().getZ() + "]", true);
                         }
                         break;
 
@@ -119,14 +120,16 @@ public class StargateCommand implements CommandExecutor {
                     event.setWillDestroy(true);
                     event.setWillClose(true);
 
-                    Stargate destination = StargateUtils.getStargateByAddress(String.join("", playerDialingCode));
+                    String dialingCode = StringUtils.join(playerDialingCode, "");
+
+                    Stargate destination = StargateUtils.getStargateByAddress(dialingCode);
 
                     if (destination == null) {
-                        parent.sendChatMessage(event.getPlayer(), org.bukkit.ChatColor.RED + "Unable to establish connection to " + String.join("", playerDialingCode) + ". " + ChatColor.GRAY + "Check the address and try again.");
+                        parent.sendChatMessage(event.getPlayer(), org.bukkit.ChatColor.RED + "Unable to establish connection to " + dialingCode + ". " + ChatColor.GRAY + "Check the address and try again.");
                     } else if (destination.getAddress().equals(nearbyStargate.getAddress())) {
-                        parent.sendChatMessage(event.getPlayer(), org.bukkit.ChatColor.RED + "Unable to establish connection to " + String.join("", playerDialingCode) + ". " + ChatColor.GRAY + "You cannot dial your own gate.");
+                        parent.sendChatMessage(event.getPlayer(), org.bukkit.ChatColor.RED + "Unable to establish connection to " + dialingCode + ". " + ChatColor.GRAY + "You cannot dial your own gate.");
                     } else if (destination.getWormhole() != null) {
-                        parent.sendChatMessage(event.getPlayer(), org.bukkit.ChatColor.RED + "Unable to establish connection to " + String.join("", playerDialingCode) + ". " + ChatColor.GRAY + "The destination gate is currently busy.");
+                        parent.sendChatMessage(event.getPlayer(), org.bukkit.ChatColor.RED + "Unable to establish connection to " + dialingCode + ". " + ChatColor.GRAY + "The destination gate is currently busy.");
                     } else {
                         parent.sendChatMessage(event.getPlayer(), "Establishing connection to " + destination.getAddress() + " at " + destination.getPosition().getX() + ", " + destination.getPosition().getY() + ", " + destination.getPosition().getZ() + ".");
                         destination.openConnection(nearbyStargate);
